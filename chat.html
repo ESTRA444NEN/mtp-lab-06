@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><title>Локальный чат</title></head>
+<body>
+  <h1>Локальный чат</h1>
+  <p>Сообщения видны всем открытым вкладкам, пока сервер работает.</p>
+  <label>Имя <input id="author" maxlength="30" value="Гость"></label>
+  <label>Сообщение <input id="text" maxlength="500"></label>
+  <button id="send">Отправить</button>
+  <ul id="messages"></ul>
+  <script>
+    const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    const socket = new WebSocket(`${protocol}//${location.host}/ws`);
+    const author = document.getElementById("author");
+    const text = document.getElementById("text");
+    const messages = document.getElementById("messages");
+    document.getElementById("send").addEventListener("click", () => {
+      if (socket.readyState === WebSocket.OPEN && author.value.trim() && text.value.trim()) {
+        socket.send(JSON.stringify({author: author.value.trim(), text: text.value.trim()}));
+        text.value = "";
+      }
+    });
+    socket.addEventListener("message", event => {
+      const data = JSON.parse(event.data);
+      const item = document.createElement("li");
+      item.textContent = data.error || `${data.author}: ${data.text}`;
+      messages.appendChild(item);
+    });
+  </script>
+</body>
+</html>
